@@ -34,6 +34,7 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -49,6 +50,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -101,27 +103,10 @@ fun PagePass() {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun Main(navController: NavController) {
+     val model:FoodsViewmodel= viewModel()
+    val foods= model.foods.observeAsState()
 
-    val foods= remember { mutableStateListOf<Yemekler>() }
 
-    LaunchedEffect(key1 = true ){
-        val ayran=Yemekler(1,"Ayran",2,"terlan")
-        val ayran1=Yemekler(1,"Ayran",2,"terlan")
-        val ayran2=Yemekler(1,"Ayran",2,"terlan")
-        val ayran3=Yemekler(1,"Ayran",2,"terlan")
-        val ayran4=Yemekler(1,"Ayran",2,"terlan")
-        val ayran5=Yemekler(1,"Ayran",2,"terlan")
-        val ayran6=Yemekler(1,"Ayran",2,"terlan")
-
-          foods.add(ayran)
-        foods.add(ayran1)
-        foods.add(ayran2)
-        foods.add(ayran3)
-        foods.add(ayran4)
-        foods.add(ayran5)
-        foods.add(ayran6)
-
-    }
 
 
     Scaffold(
@@ -138,9 +123,9 @@ fun Main(navController: NavController) {
 
             LazyColumn(modifier = Modifier.consumeWindowInsets(innerpadding), contentPadding = innerpadding){
 
-                items(count = foods.count(),
+                items(count = foods.value!!.count(),
                       itemContent = {
-                             val yemek=foods[it]
+                             val yemek=foods.value!![it]
                           Card(modifier = Modifier
                               .fillMaxWidth()
                               .padding(5.dp)) {
