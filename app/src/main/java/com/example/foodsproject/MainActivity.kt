@@ -2,7 +2,9 @@ package com.example.foodsproject
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.Application
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -24,10 +26,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Snackbar
-import androidx.compose.material3.SnackbarData
-import androidx.compose.material3.SnackbarHost
-import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -35,9 +33,6 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.livedata.observeAsState
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,6 +52,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.example.foodsproject.Room.Yemekler
 import com.example.foodsproject.ui.theme.FoodsProjectTheme
 import com.google.gson.Gson
 
@@ -92,7 +88,7 @@ fun PagePass() {
         )){
 
           val yemekjson=it.arguments?.getString("Yemekler")
-            val yemeks=Gson().fromJson(yemekjson,Yemekler::class.java)
+            val yemeks=Gson().fromJson(yemekjson, Yemekler::class.java)
             FoodDatails(yemekler = yemeks)
 
         }
@@ -103,8 +99,14 @@ fun PagePass() {
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun Main(navController: NavController) {
-     val model:FoodsViewmodel= viewModel()
+    val context=LocalContext.current
+     val model:FoodsViewmodel= viewModel(
+         factory = ViewModelFactor(context.applicationContext as Application)
+     )
+
     val foods= model.foods.observeAsState()
+
+    Log.e("message", foods.value?.count().toString())
 
 
 
@@ -123,43 +125,45 @@ fun Main(navController: NavController) {
 
             LazyColumn(modifier = Modifier.consumeWindowInsets(innerpadding), contentPadding = innerpadding){
 
-                items(count = foods.value!!.count(),
-                      itemContent = {
-                             val yemek=foods.value!![it]
-                          Card(modifier = Modifier
-                              .fillMaxWidth()
-                              .padding(5.dp)) {
-                              Row(modifier = Modifier.clickable {
-                                  val jsonyemek=Gson().toJson(yemek)
-                                  navController.navigate("FoodDetails/$jsonyemek")
+                foods.value?.count()?.let {
+                    items(count = it,
+                        itemContent = {
+                            val yemek= foods.value!![it]
+                            Card(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(5.dp)) {
+                                Row(modifier = Modifier.clickable {
+                                    val jsonyemek=Gson().toJson(yemek)
+                                    navController.navigate("FoodDetails/$jsonyemek")
 
-                              }) {//clickleme row u
+                                }) {//clickleme row u
 
-                                  Row(modifier = Modifier.fillMaxWidth(),Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                                       val activity=(LocalContext.current as Activity)
-                                      Image(bitmap = ImageBitmap.imageResource(id = activity.resources.getIdentifier("${yemek.pictureNAme}","drawable",activity.packageName) ),
-                                          contentDescription = "",
-                                          modifier = Modifier
-                                              .size(60.dp)
-                                              .clip(CircleShape))
-                                      Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween ,modifier = Modifier
-                                          .fillMaxSize()
-                                          .padding(5.dp)) {
-                                       //   Image(painter = painterResource(id =R.drawable.terlan), contentDescription ="" )
+                                    Row(modifier = Modifier.fillMaxWidth(),Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                                        val activity=(LocalContext.current as Activity)
+                                        Image(bitmap = ImageBitmap.imageResource(id = activity.resources.getIdentifier("terlan","drawable",activity.packageName) ),
+                                            contentDescription = "",
+                                            modifier = Modifier
+                                                .size(60.dp)
+                                                .clip(CircleShape))
+                                        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween ,modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(5.dp)) {
+                                            //   Image(painter = painterResource(id =R.drawable.terlan), contentDescription ="" )
 
-                                          Column(verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxHeight(),horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Column(verticalArrangement = Arrangement.SpaceEvenly, modifier = Modifier.fillMaxHeight(),horizontalAlignment = Alignment.CenterHorizontally) {
                                                 Text(text = yemek.name, fontSize = 16.sp)
-                                              Spacer(modifier = Modifier.size(17.dp))
-                                                 Text(text = "${yemek.price}$", color = Color.Blue, fontSize = 16.sp)
-                                          }
-                                          Image(painter = painterResource(id = R.drawable.baseline_arrow_forward_24), contentDescription ="" )
+                                                Spacer(modifier = Modifier.size(17.dp))
+                                                Text(text = "${yemek.price}$", color = Color.Blue, fontSize = 16.sp)
+                                            }
+                                            Image(painter = painterResource(id = R.drawable.baseline_arrow_forward_24), contentDescription ="" )
 
-                                      }
+                                        }
 
-                                  }
-                              }
-                          }
-                      })
+                                    }
+                                }
+                            }
+                        })
+                }
             }
 
         }
